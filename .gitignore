@@ -3,3 +3,5 @@ node_modules/
 footy.db
 footy.db-wal
 footy.db-shm
+.DS_Store
+*.zip
