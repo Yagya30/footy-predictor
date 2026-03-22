@@ -1,0 +1,5 @@
+node_modules/
+.env
+footy.db
+footy.db-wal
+footy.db-shm
