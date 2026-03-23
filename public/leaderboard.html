@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard · Footy Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a; --surface: #111; --surface2: #1a1a1a;
+  --border: #2a2a2a; --ink: #f0f0f0; --ink-muted: #888; --ink-faint: #444;
+  --green: #4ade80; --green-dim: #0f2a18;
+  --gold: #fbbf24; --silver: #94a3b8; --bronze: #cd7f32;
+  --blue: #60a5fa; --red: #f87171; --radius: 10px;
+}
+body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+header {
+  border-bottom: 1px solid var(--border); padding: 1.25rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-ball { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.logo-name { font-family: 'Geist Mono', monospace; font-size: 1rem; font-weight: 500; color: var(--ink); }
+.logo-sub { font-size: 0.75rem; color: var(--ink-muted); }
+.nav { display: flex; gap: 1.25rem; align-items: center; }
+.nav-link { font-size: 0.82rem; color: var(--ink-muted); text-decoration: none; font-family: 'Geist Mono', monospace; }
+.nav-link:hover { color: var(--ink); }
+.nav-link.active { color: var(--green); }
+
+.main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+.page-title { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.3rem; }
+.page-sub { font-size: 0.88rem; color: var(--ink-muted); }
+
+.sync-area { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.comp-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.5rem 0.75rem;
+  font-family: 'Geist', sans-serif; font-size: 0.82rem;
+  color: var(--ink); outline: none; cursor: pointer;
+}
+.btn-sync {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.5rem 1rem;
+  font-family: 'Geist Mono', monospace; font-size: 0.78rem;
+  color: var(--ink-muted); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-sync:hover { border-color: var(--green); color: var(--green); }
+.btn-sync.syncing { color: var(--green); border-color: var(--green); }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.sync-dot.spinning { animation: pulse 0.8s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+.sync-msg { font-size: 0.75rem; font-family: 'Geist Mono', monospace; color: var(--green); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--surface2); border-radius: var(--radius); padding: 1rem; text-align: center; }
+.stat-num { font-family: 'Geist Mono', monospace; font-size: 1.4rem; font-weight: 500; color: var(--ink); }
+.stat-label { font-size: 0.72rem; color: var(--ink-muted); margin-top: 3px; }
+
+.section-title { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 10px; font-family: 'Geist Mono', monospace; }
+
+.leaderboard { display: flex; flex-direction: column; gap: 6px; margin-bottom: 2rem; }
+
+.player-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.25rem;
+  display: grid; grid-template-columns: 36px 1fr repeat(3, 70px) 80px;
+  align-items: center; gap: 12px; transition: border-color 0.15s;
+}
+.player-row:hover { border-color: #3a3a3a; }
+.player-row.rank-1 { border-color: #3a2e0a; background: #141008; }
+.player-row.rank-2 { border-color: #252c35; background: #0d1117; }
+.player-row.rank-3 { border-color: #2a1f12; background: #110d08; }
+
+.rank { font-family: 'Geist Mono', monospace; font-size: 0.88rem; font-weight: 500; text-align: center; }
+.rank-1 .rank { color: var(--gold); }
+.rank-2 .rank { color: var(--silver); }
+.rank-3 .rank { color: var(--bronze); }
+.rank-other { color: var(--ink-faint); }
+
+.player-name { font-size: 0.95rem; font-weight: 500; }
+.rank-1 .player-name { color: var(--gold); }
+.rank-2 .player-name { color: var(--silver); }
+.rank-3 .player-name { color: var(--bronze); }
+
+.col-label { font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 2px; }
+.col-val { font-family: 'Geist Mono', monospace; font-size: 0.9rem; font-weight: 500; color: var(--ink); }
+.col { text-align: center; }
+
+.points-badge {
+  font-family: 'Geist Mono', monospace; font-size: 1rem; font-weight: 500;
+  text-align: right; color: var(--green);
+}
+.points-badge span { font-size: 0.72rem; color: var(--ink-muted); font-weight: 400; }
+
+.table-header {
+  display: grid; grid-template-columns: 36px 1fr repeat(3, 70px) 80px;
+  gap: 12px; padding: 0 1.25rem; margin-bottom: 6px;
+}
+.th { font-size: 0.7rem; color: var(--ink-faint); font-family: 'Geist Mono', monospace; text-align: center; }
+.th:nth-child(2) { text-align: left; }
+.th:last-child { text-align: right; }
+
+.empty { text-align: center; padding: 3rem; color: var(--ink-muted); font-size: 0.9rem; border: 1px dashed var(--border); border-radius: var(--radius); }
+
+.loading { text-align: center; padding: 4rem; }
+.spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { color: var(--ink-muted); font-family: 'Geist Mono', monospace; font-size: 0.82rem; }
+
+.no-predictions {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.no-predictions p { font-size: 0.88rem; color: var(--ink-muted); }
+.btn-predict {
+  background: var(--green); color: #0a0a0a; border: none;
+  padding: 0.55rem 1.25rem; font-family: 'Geist', sans-serif;
+  font-size: 0.85rem; font-weight: 500; border-radius: 8px;
+  cursor: pointer; text-decoration: none; display: inline-block;
+}
+
+@media (max-width: 600px) {
+  .player-row, .table-header { grid-template-columns: 28px 1fr repeat(2, 60px) 70px; }
+  .col:nth-child(4) { display: none; }
+  .th:nth-child(4) { display: none; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">
+    <div class="logo-ball">⚽</div>
+    <div>
+      <div class="logo-name">footy-predictor</div>
+      <div class="logo-sub">mini-league for your group</div>
+    </div>
+  </a>
+  <nav class="nav">
+    <a class="nav-link" href="/">fixtures</a>
+    <a class="nav-link" href="/predict.html">predict</a>
+    <a class="nav-link active" href="/leaderboard.html">leaderboard</a>
+  </nav>
+</header>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Leaderboard</div>
+      <div class="page-sub" id="last-updated">Loading standings...</div>
+    </div>
+    <div class="sync-area">
+      <select class="comp-select" id="sync-comp">
+        <option value="PL">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+        <option value="PD">🇪🇸 La Liga</option>
+        <option value="SA">🇮🇹 Serie A</option>
+        <option value="BL1">🇩🇪 Bundesliga</option>
+        <option value="FL1">🇫🇷 Ligue 1</option>
+        <option value="CL">⭐ Champions League</option>
+      </select>
+      <button class="btn-sync" id="sync-btn" onclick="syncResults()">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Sync results</span>
+      </button>
+      <div class="sync-msg" id="sync-msg" style="display:none"></div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading leaderboard...</p>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="no-predictions" id="no-preds-banner" style="display:none">
+      <p>No predictions scored yet — sync results above after matches finish.</p>
+      <a class="btn-predict" href="/predict.html">Submit predictions →</a>
+    </div>
+    <div class="section-title">Overall standings</div>
+    <div class="table-header">
+      <div class="th">#</div>
+      <div class="th">player</div>
+      <div class="th">predicted</div>
+      <div class="th">exact</div>
+      <div class="th">correct</div>
+      <div class="th" style="text-align:right">points</div>
+    </div>
+    <div class="leaderboard" id="leaderboard"></div>
+  </div>
+</div>
+
+<script>
+async function load() {
+  try {
+    const res = await fetch("/api/leaderboard");
+    const players = await res.json();
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    const totalPredictions = players.reduce((s, p) => s + p.predictions_made, 0);
+    const totalPoints = players.reduce((s, p) => s + p.total_points, 0);
+    const totalExact = players.reduce((s, p) => s + p.exact_scores, 0);
+
+    document.getElementById("stats-grid").innerHTML = `
+      <div class="stat-card"><div class="stat-num">${players.length}</div><div class="stat-label">players</div></div>
+      <div class="stat-card"><div class="stat-num">${totalPredictions}</div><div class="stat-label">predictions</div></div>
+      <div class="stat-card"><div class="stat-num">${totalExact}</div><div class="stat-label">exact scores</div></div>
+    `;
+
+    if (!players.length) {
+      document.getElementById("leaderboard").innerHTML =
+        `<div class="empty">No players yet. <a href="/predict.html" style="color:var(--green)">Be the first to predict →</a></div>`;
+      return;
+    }
+
+    const hasPoints = players.some(p => p.total_points > 0);
+    document.getElementById("no-preds-banner").style.display = hasPoints ? "none" : "flex";
+
+    document.getElementById("leaderboard").innerHTML = players.map((p, i) => {
+      const rank = i + 1;
+      const rankClass = rank <= 3 ? `rank-${rank}` : "";
+      const rankDisplay = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+      return `
+        <div class="player-row ${rankClass}">
+          <div class="rank">${rankDisplay}</div>
+          <div class="player-name">${esc(p.name)}</div>
+          <div class="col">
+            <div class="col-val">${p.predictions_made}</div>
+          </div>
+          <div class="col">
+            <div class="col-val" style="color:var(--green)">${p.exact_scores}</div>
+          </div>
+          <div class="col">
+            <div class="col-val" style="color:var(--blue)">${p.correct_results}</div>
+          </div>
+          <div class="points-badge">${p.total_points} <span>pts</span></div>
+        </div>`;
+    }).join("");
+
+    document.getElementById("last-updated").textContent =
+      `Updated ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} · ${players.length} player${players.length !== 1 ? "s" : ""}`;
+
+  } catch (e) {
+    document.getElementById("loading").innerHTML =
+      `<div style="color:#f87171;text-align:center;padding:2rem">Failed to load leaderboard. Is the server running?</div>`;
+  }
+}
+
+async function syncResults() {
+  const comp = document.getElementById("sync-comp").value;
+  const btn = document.getElementById("sync-btn");
+  const dot = document.getElementById("sync-dot");
+  const label = document.getElementById("sync-label");
+  const msg = document.getElementById("sync-msg");
+
+  btn.classList.add("syncing");
+  dot.classList.add("spinning");
+  label.textContent = "Syncing...";
+  msg.style.display = "none";
+
+  try {
+    const res = await fetch("/api/results/sync", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ competition: comp })
+    });
+    const data = await res.json();
+    msg.textContent = data.message || "Done!";
+    msg.style.display = "block";
+    await load();
+  } catch (e) {
+    msg.textContent = "Sync failed.";
+    msg.style.display = "block";
+  } finally {
+    btn.classList.remove("syncing");
+    dot.classList.remove("spinning");
+    label.textContent = "Sync results";
+  }
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+load();
+</script>
+</body>
+</html>
