@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile · Footy Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a; --surface: #111; --surface2: #1a1a1a;
+  --border: #2a2a2a; --ink: #f0f0f0; --ink-muted: #888; --ink-faint: #444;
+  --green: #4ade80; --green-dim: #0f2a18; --green-border: #1a5c30;
+  --blue: #60a5fa; --blue-dim: #0f1a2a; --blue-border: #1a3a6e;
+  --red: #f87171; --red-dim: #2a0f0f; --red-border: #6e2a2a;
+  --amber: #fbbf24; --radius: 10px;
+}
+body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+header {
+  border-bottom: 1px solid var(--border); padding: 1.25rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-ball { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.logo-name { font-family: 'Geist Mono', monospace; font-size: 1rem; font-weight: 500; color: var(--ink); }
+.logo-sub { font-size: 0.75rem; color: var(--ink-muted); }
+.nav { display: flex; gap: 1.25rem; align-items: center; }
+.nav-link { font-size: 0.82rem; color: var(--ink-muted); text-decoration: none; font-family: 'Geist Mono', monospace; }
+.nav-link:hover { color: var(--ink); }
+.nav-link.active { color: var(--green); }
+
+.main { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+.step { display: none; }
+.step.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-title { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.4rem; }
+.page-sub { font-size: 0.9rem; color: var(--ink-muted); margin-bottom: 2rem; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+label { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 6px; font-family: 'Geist Mono', monospace; }
+input[type="text"], input[type="password"] {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.65rem 1rem; font-family: 'Geist', sans-serif;
+  font-size: 0.95rem; color: var(--ink); outline: none; transition: border-color 0.15s;
+}
+input:focus { border-color: var(--green); }
+input::placeholder { color: var(--ink-faint); }
+.field { margin-bottom: 1.25rem; }
+.btn {
+  background: var(--green); color: #0a0a0a; border: none;
+  padding: 0.7rem 1.6rem; font-family: 'Geist', sans-serif;
+  font-size: 0.9rem; font-weight: 500; border-radius: 8px;
+  cursor: pointer; transition: opacity 0.15s; width: 100%; margin-top: 0.5rem;
+}
+.btn:hover { opacity: 0.85; }
+.error-box {
+  background: var(--red-dim); border: 1px solid var(--red-border);
+  border-radius: 8px; padding: 0.75rem 1rem;
+  color: var(--red); font-size: 0.85rem; margin-bottom: 1rem; display: none;
+}
+
+.profile-header {
+  display: flex; align-items: center; gap: 1.25rem;
+  margin-bottom: 1.75rem; flex-wrap: wrap;
+}
+.avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--green-dim); border: 2px solid var(--green-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; font-weight: 500; color: var(--green);
+  font-family: 'Geist Mono', monospace; flex-shrink: 0;
+}
+.profile-name { font-size: 1.4rem; font-weight: 500; margin-bottom: 3px; }
+.profile-joined { font-size: 0.78rem; color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
+.btn-logout {
+  margin-left: auto; background: transparent; border: 1px solid var(--border);
+  color: var(--ink-muted); padding: 0.45rem 1rem; font-family: 'Geist Mono', monospace;
+  font-size: 0.75rem; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+}
+.btn-logout:hover { border-color: var(--red-border); color: var(--red); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.75rem; }
+.stat-card { background: var(--surface2); border-radius: var(--radius); padding: 1rem; text-align: center; }
+.stat-num { font-family: 'Geist Mono', monospace; font-size: 1.3rem; font-weight: 500; }
+.stat-label { font-size: 0.7rem; color: var(--ink-muted); margin-top: 3px; }
+
+.form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.75rem; }
+.form-label { font-size: 0.78rem; color: var(--ink-muted); font-family: 'Geist Mono', monospace; margin-right: 4px; }
+.form-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-family: 'Geist Mono', monospace; font-weight: 500;
+  flex-shrink: 0;
+}
+.form-exact { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.form-correct { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-border); }
+.form-wrong { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+.form-pending { background: var(--surface2); color: var(--ink-faint); border: 1px solid var(--border); }
+
+.section-title { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 10px; font-family: 'Geist Mono', monospace; }
+
+.history { display: flex; flex-direction: column; gap: 6px; }
+
+.pred-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.9rem 1.25rem;
+  display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center;
+}
+.pred-card.exact { border-left: 3px solid var(--green); }
+.pred-card.correct { border-left: 3px solid var(--blue); }
+.pred-card.wrong { border-left: 3px solid var(--red); }
+.pred-card.pending { border-left: 3px solid var(--border); }
+
+.pred-match { font-size: 0.88rem; font-weight: 500; margin-bottom: 4px; }
+.pred-meta { font-size: 0.75rem; color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
+.pred-comp { display: inline-block; font-size: 0.7rem; background: var(--surface2); padding: 2px 7px; border-radius: 20px; margin-right: 6px; }
+
+.pred-right { text-align: right; }
+.pred-scores { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 4px; }
+.score-box {
+  font-family: 'Geist Mono', monospace; font-size: 0.88rem; font-weight: 500;
+  padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.score-actual { font-size: 0.72rem; color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
+.score-sep { color: var(--ink-faint); font-size: 0.78rem; }
+
+.pts-badge {
+  font-family: 'Geist Mono', monospace; font-size: 0.78rem; font-weight: 500;
+  padding: 2px 8px; border-radius: 20px;
+}
+.pts-3 { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.pts-1 { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-border); }
+.pts-0 { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+.pts-pending { background: var(--surface2); color: var(--ink-faint); border: 1px solid var(--border); }
+
+.empty { text-align: center; padding: 3rem; color: var(--ink-muted); font-size: 0.9rem; border: 1px dashed var(--border); border-radius: var(--radius); }
+.loading { text-align: center; padding: 3rem; }
+.spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { color: var(--ink-muted); font-family: 'Geist Mono', monospace; font-size: 0.82rem; }
+
+.legend { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--ink-muted); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+@media (max-width: 500px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">
+    <div class="logo-ball">⚽</div>
+    <div>
+      <div class="logo-name">footy-predictor</div>
+      <div class="logo-sub">mini-league for your group</div>
+    </div>
+  </a>
+  <nav class="nav">
+    <a class="nav-link" href="/">fixtures</a>
+    <a class="nav-link" href="/predict.html">predict</a>
+    <a class="nav-link" href="/leaderboard.html">leaderboard</a>
+    <a class="nav-link active" href="/profile.html">profile</a>
+  </nav>
+</header>
+
+<div class="main">
+
+  <!-- Login step -->
+  <div class="step active" id="step-login">
+    <div class="page-title">Your profile</div>
+    <div class="page-sub">Log in to see your prediction history and stats.</div>
+    <div class="error-box" id="login-error"></div>
+    <div class="card">
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="player-name" placeholder="e.g. Yagya">
+      </div>
+      <div class="field">
+        <label>PIN</label>
+        <input type="password" id="player-pin" placeholder="••••" inputmode="numeric">
+      </div>
+      <button class="btn" onclick="login()">View my profile →</button>
+    </div>
+  </div>
+
+  <!-- Profile step -->
+  <div class="step" id="step-profile">
+    <div class="profile-header">
+      <div class="avatar" id="profile-avatar"></div>
+      <div>
+        <div class="profile-name" id="profile-name"></div>
+        <div class="profile-joined" id="profile-joined"></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="section-title">Recent form</div>
+    <div class="form-row" id="form-row">
+      <span class="form-label">last 5</span>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Exact score (3pts)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Correct result (1pt)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Wrong (0pts)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--border)"></div> Pending</div>
+    </div>
+
+    <div class="section-title">Prediction history</div>
+    <div id="history-area">
+      <div class="loading"><div class="spinner"></div><p>Loading history...</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const COMP_NAMES = { PL: "Premier League", PD: "La Liga", SA: "Serie A", BL1: "Bundesliga", FL1: "Ligue 1", CL: "Champions League" };
+let currentPlayer = null;
+
+function showStep(id) {
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function showError(msg) {
+  const el = document.getElementById("login-error");
+  el.textContent = msg; el.style.display = "block";
+  setTimeout(() => el.style.display = "none", 4000);
+}
+
+function initials(name) {
+  return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
+async function login() {
+  const name = document.getElementById("player-name").value.trim();
+  const pin  = document.getElementById("player-pin").value.trim();
+  if (!name) return showError("Please enter your name.");
+  if (!pin || pin.length < 4) return showError("PIN must be at least 4 digits.");
+
+  const res = await fetch("/api/player/login", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, pin })
+  });
+  const data = await res.json();
+  if (!res.ok) return showError(data.error);
+
+  currentPlayer = data.player;
+  await loadProfile();
+  showStep("step-profile");
+}
+
+async function loadProfile() {
+  document.getElementById("profile-avatar").textContent = initials(currentPlayer.name);
+  document.getElementById("profile-name").textContent = currentPlayer.name;
+  document.getElementById("profile-joined").textContent = "member since · footy-predictor";
+
+  const res = await fetch(`/api/results/${currentPlayer.id}`);
+  const finished = await res.json();
+
+  const predsRes = await fetch(`/api/predictions/${currentPlayer.id}`);
+  const allPreds = await predsRes.json();
+
+  const total = allPreds.length;
+  const scored = finished.length;
+  const pts = finished.reduce((s, p) => s + (p.points || 0), 0);
+  const exact = finished.filter(p => p.points === 3).length;
+  const correct = finished.filter(p => p.points === 1).length;
+  const accuracy = scored > 0 ? Math.round(((exact + correct) / scored) * 100) : 0;
+
+  document.getElementById("stats-grid").innerHTML = `
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${pts}</div><div class="stat-label">total points</div></div>
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">predictions</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${exact}</div><div class="stat-label">exact scores</div></div>
+    <div class="stat-card"><div class="stat-num">${accuracy}%</div><div class="stat-label">accuracy</div></div>
+  `;
+
+  const last5 = finished.slice(0, 5);
+  const formRow = document.getElementById("form-row");
+  formRow.innerHTML = `<span class="form-label">last 5</span>`;
+  if (!last5.length) {
+    formRow.innerHTML += `<span style="font-size:0.78rem;color:var(--ink-faint)">no scored predictions yet</span>`;
+  } else {
+    last5.forEach(p => {
+      const cls = p.points === 3 ? "form-exact" : p.points === 1 ? "form-correct" : "form-wrong";
+      const label = p.points === 3 ? "3" : p.points === 1 ? "1" : "0";
+      formRow.innerHTML += `<div class="form-dot ${cls}">${label}</div>`;
+    });
+  }
+
+  const histEl = document.getElementById("history-area");
+  if (!total) {
+    histEl.innerHTML = `<div class="empty">No predictions yet. <a href="/predict.html" style="color:var(--green)">Start predicting →</a></div>`;
+    return;
+  }
+
+  const finishedMap = {};
+  finished.forEach(p => finishedMap[`${p.home_team}-${p.away_team}`] = p);
+
+  histEl.innerHTML = `<div class="history">` + finished.map(p => {
+    const cls = p.points === 3 ? "exact" : p.points === 1 ? "correct" : "wrong";
+    const ptsCls = p.points === 3 ? "pts-3" : p.points === 1 ? "pts-1" : "pts-0";
+    const ptsLabel = p.points === 3 ? "3pts · exact" : p.points === 1 ? "1pt · correct" : "0pts";
+    return `
+      <div class="pred-card ${cls}">
+        <div>
+          <div class="pred-match">${esc(p.home_team)} vs ${esc(p.away_team)}</div>
+          <div class="pred-meta">
+            <span class="pred-comp">${COMP_NAMES[p.competition] || p.competition}</span>
+            Matchday ${p.matchday}
+          </div>
+        </div>
+        <div class="pred-right">
+          <div class="pred-scores">
+            <span class="score-box">${p.pred_home} – ${p.pred_away}</span>
+            <span class="score-sep">→</span>
+            <span class="score-box" style="border-color:#3a3a3a">${p.actual_home} – ${p.actual_away}</span>
+          </div>
+          <div class="score-actual">your pred → actual</div>
+          <div style="margin-top:5px"><span class="pts-badge ${ptsCls}">${ptsLabel}</span></div>
+        </div>
+      </div>`;
+  }).join("") + `</div>`;
+
+  if (finished.length < total) {
+    histEl.innerHTML += `<div style="text-align:center;padding:1rem;font-size:0.82rem;color:var(--ink-faint);font-family:'Geist Mono',monospace">${total - finished.length} prediction(s) pending — sync results after matches finish</div>`;
+  }
+}
+
+function logout() {
+  currentPlayer = null;
+  document.getElementById("player-name").value = "";
+  document.getElementById("player-pin").value = "";
+  showStep("step-login");
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+document.getElementById("player-pin").addEventListener("keydown", e => {
+  if (e.key === "Enter") login();
+});
+</script>
+</body>
+</html>
